@@ -11,13 +11,6 @@ Architecture: any
 Provides:
  mail-reader,
  thunderbird-gnome-support,
- thunderbird-locale-bn,
- thunderbird-locale-bn-bd,
- thunderbird-locale-fa,
- thunderbird-locale-mk,
- thunderbird-locale-si,
- thunderbird-locale-ta,
- thunderbird-locale-ta-lk
 Description: Email, RSS and newsgroup client with integrated spam filter
  Thunderbird is a full-featured email, RSS and newsgroup client that makes
  emailing safer, faster and easier than ever before. It supports different mail
