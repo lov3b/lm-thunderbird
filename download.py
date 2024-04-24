@@ -78,7 +78,11 @@ with open(os.path.join(curdir, "locales.shipped")) as f:
         if line.startswith("#"):
             continue
 
-        xpi_name, pkg_name = line.split(":")
+        try:
+            xpi_name, pkg_name = line.split(":")
+        except:
+            xpi_name, pkg_name, noprovide = line.split(":")
+
         pkg_name = pkg_name.replace("\n", "")
 
         if "-mac" in xpi_name:
