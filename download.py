@@ -134,8 +134,8 @@ def main():
         download(f"{xpi_url}/{file_name}", file_name)
         shutil.move(file_name, f"langpack-{xpi}@thunderbird.mozilla.org.xpi")
 
-        print("Done.")
-        os.chdir(curdir)
+    print("Done.")
+    os.chdir(curdir)
 
 
 def read_codes(text_io: TextIO) -> dict:
