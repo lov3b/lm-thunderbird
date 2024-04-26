@@ -13,7 +13,7 @@ VERSION_EPOCH: Final[str] = "1"
 
 
 def progress(count: int, total: int, prefix: str = '', suffix: str = ''):
-    bar_len = shutil.get_terminal_size((40, 0)).columns - 15 - len(suffix)
+    bar_len = shutil.get_terminal_size((40, 0)).columns - 14 - len(suffix)
     if prefix:
         bar_len -= len(prefix) + 1
     filled_len = int(bar_len * count / total)
