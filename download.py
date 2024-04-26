@@ -10,6 +10,7 @@ from typing import Final, Callable, TextIO, Optional
 
 CHUNK_SIZE: Final[int] = 8192
 VERSION_EPOCH: Final[str] = "1"
+NOT_FOUND_STATUS: Final[int] = 404
 
 
 def progress(count: int, total: int, prefix: str = '', suffix: str = ''):
@@ -28,6 +29,9 @@ def progress(count: int, total: int, prefix: str = '', suffix: str = ''):
 def _download_python(url: str, file_name: str):
     try:
         response = requests.get(url, stream=True)
+        if response.status_code == NOT_FOUND_STATUS:
+            print(f"The artifact likely doesn't exist. Got {NOT_FOUND_STATUS} for url '{url}'")
+            sys.exit(1)
         response.raise_for_status()
         content_length: Optional[str] = response.headers.get("Content-Length", None)
         if content_length:
@@ -50,6 +54,7 @@ def _download_python(url: str, file_name: str):
 
     except requests.RequestException as e:
         print("Failed to download '%s' with error: %s" % (file_name, str(e)))
+        sys.exit(0)
     except KeyboardInterrupt:
         print("Download interrupted by user")
         sys.exit(0)
