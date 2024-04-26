@@ -72,7 +72,11 @@ def main():
 
 
 class Pkg:
-    def __init__(self, pkg_name):
+    pkg_name: str
+    provides: list
+    replaces: list
+
+    def __init__(self, pkg_name: str):
         self.pkg_name = pkg_name
         self.provides = []
         self.replaces = []
@@ -144,7 +148,7 @@ def parse_packages(f: TextIO) -> Tuple[List[Pkg], dict]:
             current_pkg = Pkg(pkg_name)
 
         if (xpi_name != pkg_name) and not no_provide:
-            current_pkg.provides.append("%s-%s" % (LOCALE_PREFIX, xpi_name.lower()))
+            current_pkg.provides.append(f"{LOCALE_PREFIX}-{xpi_name.lower()}")
 
         if current_pkg not in shipped_packages:
             shipped_packages.append(current_pkg)
