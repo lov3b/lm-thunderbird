@@ -94,18 +94,19 @@ def main():
         release = version.split("~")[0]
         lmde = True
 
-    release_for_urls = release.removeprefix("%s:" % VERSION_EPOCH)
+    release_for_urls = release.removeprefix(f"{VERSION_EPOCH}:")
 
     remove_thunderbird_prefixes = [entry
-                                   for entry in os.scandir("%s/debian" % curdir)
+                                   for entry in os.scandir(f"{curdir}/debian")
                                    if entry.is_dir() and entry.name.startswith("thunderbird")
                                    ]
     for entry in remove_thunderbird_prefixes:
         shutil.rmtree(entry)
-    print("Removed dirs/files: %s" % ", ".join(entry.name for entry in remove_thunderbird_prefixes))
+    print("Removed old dirs/files: %s" % ", ".join(entry.name for entry in remove_thunderbird_prefixes))
 
-    pathlib.Path("%s/debian/thunderbird/usr/lib" % curdir).mkdir(parents=True, exist_ok=True)
-    os.chdir("%s/debian/thunderbird/usr/lib" % curdir)
+    usr_lib_dir = f"{curdir}/debian/thunderbird/usr/lib"
+    pathlib.Path(usr_lib_dir).mkdir(parents=True, exist_ok=True)
+    os.chdir(usr_lib_dir)
     if not abort:
         download_thunderbird_archive(curdir, archi, release_for_urls)
 
@@ -116,21 +117,20 @@ def main():
     print("Parsed thunderbird locales"
           ", starting download" if len(codes) > 0 else "")
 
-    xpi_url = "https://download-origin.cdn.mozilla.net/pub/thunderbird/releases/%s/%s/xpi" % (release_for_urls, archi)
+    xpi_url = f"https://download-origin.cdn.mozilla.net/pub/thunderbird/releases/{release_for_urls}/{archi}/xpi"
     for xpi, package_code in codes.items():
-        extension_dir = ("%s/debian/%s-%s/usr/lib/thunderbird/distribution/extensions" % (
-            curdir, locale_prefix, package_code))
+        extension_dir = f"{curdir}/debian/{locale_prefix}-{package_code}/usr/lib/thunderbird/distribution/extensions"
         pathlib.Path(extension_dir).mkdir(parents=True, exist_ok=True)
         os.chdir(extension_dir)
 
         if abort:
             continue
-        file_name = "%s.xpi" % xpi
-        download("%s/%s.xpi" % (xpi_url, xpi), file_name)
-        shutil.move("%s.xpi" % xpi, "langpack-%s@thunderbird.mozilla.org.xpi" % xpi)
+        file_name = f"{xpi}.xpi"
+        download(f"{xpi_url}/{file_name}", file_name)
+        shutil.move(file_name, f"langpack-{xpi}@thunderbird.mozilla.org.xpi")
 
-    print("Done.")
-    os.chdir(curdir)
+        print("Done.")
+        os.chdir(curdir)
 
 
 def read_codes(text_io: TextIO) -> dict:
@@ -156,30 +156,27 @@ def download_thunderbird_archive(curdir: str, archi: str, release_for_urls: str)
     us_url = "https://download-origin.cdn.mozilla.net/pub/thunderbird/releases/%s/%s/en-US/thunderbird-%s.tar.bz2" % (
         release_for_urls, archi, release_for_urls)
 
-    file_name = "thunderbird-%s.tar.bz2" % release_for_urls
+    file_name = f"thunderbird-{release_for_urls}.tar.bz2"
     download(us_url, file_name)
     print(f"Extracting {file_name}")
     with tarfile.open(file_name) as tf:
         tf.extractall(".")
 
-    os.remove("thunderbird-%s.tar.bz2" % release_for_urls)
-    pathlib.Path("%s/debian/thunderbird/usr/lib/thunderbird/distribution" % curdir).mkdir(parents=True,
-                                                                                          exist_ok=True)
-    shutil.copy(os.path.join(curdir, "pref", "policies.json"),
-                "%s/debian/thunderbird/usr/lib/thunderbird/distribution" % curdir)
-    pathlib.Path("%s/debian/thunderbird/usr/share/icons/hicolor" % curdir).mkdir(parents=True, exist_ok=True)
-    os.chdir("%s/debian/thunderbird/usr/share/icons/hicolor" % curdir)
+    os.remove(file_name)
+    distribution_dir = f"{curdir}/debian/thunderbird/usr/lib/thunderbird/distribution"
+    pathlib.Path(distribution_dir).mkdir(parents=True, exist_ok=True)
+    shutil.copy(f"{curdir}/pref/policies.json", distribution_dir)
+
+    hicolor_dir = f"{curdir}/debian/thunderbird/usr/share/icons/hicolor"
+    pathlib.Path(hicolor_dir).mkdir(parents=True, exist_ok=True)
+    os.chdir(hicolor_dir)
     for entry in ["16x16/apps", "22x22/apps", "24x24/apps", "32x32/apps", "48x48/apps", "64x64/apps",
                   "128x128/apps", "256x256/apps"]:
         pathlib.Path(entry).mkdir(parents=True, exist_ok=True)
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default16.png", "16x16/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default22.png", "22x22/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default24.png", "24x24/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default32.png", "32x32/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default48.png", "48x48/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default64.png", "64x64/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default128.png", "128x128/apps/thunderbird.png")
-    os.symlink("/usr/lib/thunderbird/chrome/icons/default/default256.png", "256x256/apps/thunderbird.png")
+
+    for res in [16, 22, 24, 32, 48, 64, 128, 256]:
+        pathlib.Path(f"{res}x{res}/apps").mkdir(parents=True, exist_ok=True)
+        os.symlink(f"/usr/lib/thunderbird/chrome/icons/default/default{res}.png", f"{res}x{res}/apps/thunderbird.png")
 
 
 if __name__ == "__main__":
